@@ -8,6 +8,9 @@ import android.view.SurfaceView
 import android.view.View
 import android.view.ViewGroup
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.view.get
+import androidx.databinding.DataBindingUtil
+import com.example.demofacedetectionwithmediapipe.databinding.ActivityMainBinding
 import com.google.mediapipe.components.CameraHelper.CameraFacing
 import com.google.mediapipe.components.CameraXPreviewHelper
 import com.google.mediapipe.components.ExternalTextureConverter
@@ -17,6 +20,10 @@ import com.google.mediapipe.framework.AndroidAssetUtil
 import com.google.mediapipe.glutil.EglManager
 
 class MainActivity : AppCompatActivity() {
+
+    lateinit var binding: ActivityMainBinding
+
+
     private val BINARY_GRAPH_NAME = "face_detection_mobile_gpu.binarypb"
     private val INPUT_VIDEO_STREAM_NAME = "input_video"
     private val OUTPUT_VIDEO_STREAM_NAME = "output_video"
@@ -43,7 +50,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        binding = DataBindingUtil.setContentView(this, R.layout.activity_main)
 
         previewDisplayView = SurfaceView(this)
         setupPreviewDisplayView()
@@ -55,12 +62,12 @@ class MainActivity : AppCompatActivity() {
         eglManager = EglManager(null)
         processor = FrameProcessor(
             this,
-            eglManager!!.getNativeContext(),
-           BINARY_GRAPH_NAME,
+            eglManager!!.nativeContext,
+            BINARY_GRAPH_NAME,
             INPUT_VIDEO_STREAM_NAME,
-           OUTPUT_VIDEO_STREAM_NAME
+            OUTPUT_VIDEO_STREAM_NAME
         )
-        processor!!.getVideoSurfaceOutput().setFlipY(FLIP_FRAMES_VERTICALLY)
+        processor!!.videoSurfaceOutput.setFlipY(FLIP_FRAMES_VERTICALLY)
 
         PermissionHelper.checkAndRequestCameraPermissions(this)
 
@@ -111,7 +118,7 @@ class MainActivity : AppCompatActivity() {
                     ) {
 
                         val viewSize = Size(width, height)
-                        val displaySize = cameraHelper!!.computeDisplaySizeFromViewSize(viewSize)
+                        val displaySize = binding.previewDisplayLayout
 
                         converter!!.setSurfaceTextureAndAttachToGLContext(
                             previewFrameTexture, displaySize.width, displaySize.height
@@ -131,6 +138,8 @@ class MainActivity : AppCompatActivity() {
             previewFrameTexture = surfaceTexture
             previewDisplayView!!.visibility = View.VISIBLE
         }
-        cameraHelper!!.startCamera(this, CAMERA_FACING, null)
+        cameraHelper!!.startCamera(this, CameraFacing.FRONT, null)
+
+
     }
 }
